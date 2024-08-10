@@ -93,7 +93,7 @@
         function loadMarks(city_id, reset_view)
         {
             if (city_id == undefined) {
-                city_id = "661";
+                city_id = "660";
             }
             $.get( "https://api.nextbike.net/maps/nextbike-live.json?apikey=&city=" + city_id + "&include_domains=tg%2Cde&response_type=json&show_errors=1", function( returned_data )
             {
@@ -176,7 +176,7 @@
             dataProvider.setMapSet(SMap.MAPSET_BASE);
             dataProvider.enable();
 
-            loadMarks(661, true);
+            loadMarks(660, true);
 
         }
     </script>
