@@ -129,9 +129,6 @@
                     // print bike_type number
                     let types = {};
                     for (let i = 0; i < data[name][4].length; i++) {
-                        //types += data[name][4][i].bike_type + ", ";
-                        //types += typeToStr(data[name][4][i].bike_type) + ", ";
-                        //types[typeToStr(data[name][4][i].bike_type)] = 1;
                         if (types[typeToStr(data[name][4][i].bike_type)] == undefined) {
                             types[typeToStr(data[name][4][i].bike_type)] = 1;
                         } else {
@@ -200,6 +197,27 @@
 
             loadMarks(660, true);
 
+            // Get and display user location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function showPosition(position) {
+            var userCoords = SMap.Coords.fromWGS84(position.coords.longitude, position.coords.latitude);
+
+            var options = {
+                url: 'marker/user.png',  // You can replace this with a custom icon URL
+                title: "Your location",
+                anchor: { left: 10, bottom: 10 }
+            }
+
+            var userMarker = new SMap.Marker(userCoords, null, options);
+            vrstva.addMarker(userMarker);
+
+            m.setCenterZoom(userCoords, 14);  // Adjust zoom level as needed
         }
 
         // Prevent pull-to-refresh on mobile
