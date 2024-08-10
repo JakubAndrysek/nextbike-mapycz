@@ -1,56 +1,51 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>NextBike on Mapy.cz</title>
-        <!-- Map Marker originally by
-            <a href="https://commons.wikimedia.org/wiki/File:Map_marker.svg">Andrew Onorato, modified by User:Psubhashish</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons
-        -->
-        <script type="text/javascript" src="https://api.mapy.cz/loader.js"></script>
-        <script type="text/javascript">Loader.load(null, {poi:true});</script>
-        <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
-        <style>
-            html 
-            {
-                margin: 0px;
-                font-family: Helvetica, sans-serif;
-                height: 100%;
-            }
-            #m
-            {
-                height: 100vh;
-                width: 100vw;
-                position:absolute;
-                top:0px;
-                right:0px;
-                bottom:0px;
-                left:0px;
-                z-index: -1;
-            }
-            #overlay
-            {
-                z-index: 9999;
-                color: #fafafa;
-                height: auto;
-                width: 30vw;
-                padding: 8px;
-                background: rgba(0, 0, 0, 0.5);
-                border-radius: 8px;
-            }
-            button
-            {
-                font-size: 14px;
-                width: 100px;
-                height: 25px;
-                padding: 3px;
-                background: #e5e5e5;
-                color: #000;
-                outline: none;
-                border-radius: 4px;
-                border: 1px solid black;
-                transition: 0.5s;
-            }
-        </style>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>NextBike on Mapy.cz</title>
+    <script type="text/javascript" src="https://api.mapy.cz/loader.js"></script>
+    <script type="text/javascript">Loader.load(null, {poi:true});</script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <style>
+        html {
+            margin: 0px;
+            font-family: Helvetica, sans-serif;
+            height: 100%;
+            overflow: hidden;
+        }
+        #m {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            bottom: 0px;
+            left: 0px;
+            z-index: -1;
+        }
+        #overlay {
+            z-index: 99999999;
+            color: #fafafa;
+            height: auto;
+            width: 30vw;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+        button {
+            font-size: 14px;
+            width: 100px;
+            height: 25px;
+            padding: 3px;
+            background: #e5e5e5;
+            color: #000;
+            outline: none;
+            border-radius: 4px;
+            border: 1px solid black;
+            transition: 0.5s;
+        }
+    </style>
     <script>
         var m;
         var vrstva;
@@ -58,17 +53,14 @@
         var cities = {}
         var current_city = 660;
 
-        function getCities()
-        {
-            $.get( "https://maps.nextbike.net/maps/nextbike-official.json?list_cities=1", function( returned_data ) 
-            {
+        function getCities() {
+            $.get("https://maps.nextbike.net/maps/nextbike-official.json?list_cities=1", function(returned_data) {
                 var datatest = returned_data;
                 for (var key in datatest.countries) {
                     if (datatest.countries[key].cities.length !== 0) {
                         for (var city_key in datatest.countries[key].cities) {
                             city_name = datatest.countries[key].cities[city_key].name
                             city_uid = datatest.countries[key].cities[city_key].uid
-                            // cities[city_uid] = city_name;
                             $("#citySelect").append(new Option(city_name, city_uid))
                         }
                     }
@@ -76,27 +68,36 @@
             });
         }
 
-        function citySelectionChanged(val)
-        {
+        function citySelectionChanged(val) {
             current_city = val;
             $("#citySelect").val(current_city);
             loadMarks(current_city, true);
             console.log("City selection says" + current_city);
         }
 
-        function refresh()
-        {
+        function refresh() {
             console.log("Refresh says" + current_city);
             loadMarks(current_city, false);
         }
 
-        function loadMarks(city_id, reset_view)
-        {
+        function typeToStr(type) {
+            switch (type) {
+                case 197:
+                    return "8-speed 😍";
+                case 184:
+                    return "8-speed 2.0 🚀";
+                case 250:
+                    return "7-speed 🐌";
+                default:
+                    return "Unknown";
+            }
+        }
+
+        function loadMarks(city_id, reset_view) {
             if (city_id == undefined) {
                 city_id = "660";
             }
-            $.get( "https://api.nextbike.net/maps/nextbike-live.json?apikey=&city=" + city_id + "&include_domains=tg%2Cde&response_type=json&show_errors=1", function( returned_data )
-            {
+            $.get("https://api.nextbike.net/maps/nextbike-live.json?apikey=&city=" + city_id + "&include_domains=tg%2Cde&response_type=json&show_errors=1", function(returned_data) {
                 var datatest = returned_data;
                 $("#bike_count").html(datatest.countries[0].cities[0].available_bikes);
                 $("#last_refresh").html(new Date().toLocaleString());
@@ -106,7 +107,7 @@
 
                 for (var key in obj) {
                     var value = obj[key];
-                    data[value.name] = [value.lat, value.lng, value.bikes, value.name];
+                    data[value.name] = [value.lat, value.lng, value.bikes, value.name, value.bike_list];
                 }
 
                 var znacky = [];
@@ -119,26 +120,48 @@
                         title: name,
                         anchor: { left: 0, bottom: 10 }  /* Ukotvení značky za bod uprostřed dole */
                     }
-                    
+
+                    console.log(data[name]);
+
                     var card = new SMap.Card();
                     card.getHeader().innerHTML = "<strong>" + data[name][3] + "</strong>";
-                    card.getBody().innerHTML = "Number of bikes: " + data[name][2] + "</em>";
+
+                    // print bike_type number
+                    let types = {};
+                    for (let i = 0; i < data[name][4].length; i++) {
+                        //types += data[name][4][i].bike_type + ", ";
+                        //types += typeToStr(data[name][4][i].bike_type) + ", ";
+                        //types[typeToStr(data[name][4][i].bike_type)] = 1;
+                        if (types[typeToStr(data[name][4][i].bike_type)] == undefined) {
+                            types[typeToStr(data[name][4][i].bike_type)] = 1;
+                        } else {
+                            types[typeToStr(data[name][4][i].bike_type)] += 1;
+                        }
+                    }
+
+                    typesStr = "";
+                    for (let key in types) {
+                        typesStr += key + " (" + types[key] + "), ";
+                    }
+
+                    card.getBody().innerHTML = "Number of bikes: " + data[name][2] + "</em>" + "<br>" + "Types: " + typesStr;
+
 
                     var znacka = new SMap.Marker(c, null, options);
                     znacka.decorate(SMap.Marker.Feature.Card, card);
                     souradnice.push(c);
                     znacky.push(znacka);
                 }
-                
+
                 /* Křivoklát ukotvíme za střed značky, přestože neznáme její velikost */
                 var options = {
-                    anchor: { left:0.5, top:0.5 }
+                    anchor: { left: 0.5, top: 0.5 }
                 }
                 znacky[1].decorate(SMap.Marker.Feature.RelativeAnchor, options);
 
                 vrstva.removeAll(); // Remove all previous markers
 
-                for (var i=0; i < znacky.length; i++) {
+                for (var i = 0; i < znacky.length; i++) {
                     vrstva.addMarker(znacky[i]);
                 }
 
@@ -149,15 +172,14 @@
             });
         }
 
-        function onLoad()
-        {
+        function onLoad() {
             getCities();
 
             m = new SMap(JAK.gel("m"));
             m.addControl(new SMap.Control.Sync()); /* Aby mapa reagovala na změnu velikosti průhledu */
             m.addDefaultLayer(SMap.DEF_TURIST).enable(); /* Turistický podklad */
             var mouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM); /* Ovládání myší */
-            m.addControl(mouse); 
+            m.addControl(mouse);
 
             /* znackova vrstva pro ikonky bodu zajmu; poiToolTip - zapneme title jako nazev nad POI */
             var layer = new SMap.Layer.Marker(undefined, {
@@ -179,18 +201,32 @@
             loadMarks(660, true);
 
         }
+
+        // Prevent pull-to-refresh on mobile
+        document.addEventListener('touchmove', function(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchstart', function(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
     </script>
 
-    </head>
-    <body id="advanced-markers" onload="onLoad();">
-        <div id="m"></div>
-        <div id="overlay">
-            Available bikes: <span id="bike_count"></span><br>
-            Last refresh: <span id="last_refresh"></span><br>
+</head>
+<body id="advanced-markers" onload="onLoad();">
+    <div id="m"></div>
+    <div id="overlay">
+        Available bikes: <span id="bike_count"></span><br>
+        Last refresh: <span id="last_refresh"></span><br>
 
-            <button href="javascript:void(0);" onclick="refresh();">Refresh</button>
-            <select id="citySelect" onChange="citySelectionChanged(this.value);">
-            </select>
-        </div>
-    </body>
+        <button href="javascript:void(0);" onclick="refresh();">Refresh</button>
+        <select id="citySelect" onChange="citySelectionChanged(this.value);">
+        </select>
+    </div>
+</body>
 </html>
