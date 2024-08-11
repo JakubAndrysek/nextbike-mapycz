@@ -47,8 +47,9 @@
         }
     </style>
     <script>
-        var m;
+        var map;
         var vrstva;
+        let myLocation = null;
 
         var cities = {}
         var current_city = 660;
@@ -158,39 +159,43 @@
 
                 vrstva.removeAll(); // Remove all previous markers
 
+                if (myLocation != null) {
+                    vrstva.addMarker(myLocation);
+                }
+
                 for (var i = 0; i < znacky.length; i++) {
                     vrstva.addMarker(znacky[i]);
                 }
 
-                if (reset_view) {
-                    var cz = m.computeCenterZoom(souradnice); // Spočítat pozici mapy tak, aby značky byly vidět
-                    m.setCenterZoom(cz[0], cz[1]);
-                }
+                //if (reset_view) {
+                //    var cz = map.computeCenterZoom(souradnice); // Spočítat pozici mapy tak, aby značky byly vidět
+                //    map.setCenterZoom(cz[0], cz[1]);
+                //}
             });
         }
 
         function onLoad() {
             getCities();
 
-            m = new SMap(JAK.gel("m"));
-            m.addControl(new SMap.Control.Sync()); /* Aby mapa reagovala na změnu velikosti průhledu */
-            m.addDefaultLayer(SMap.DEF_TURIST).enable(); /* Turistický podklad */
+            map = new SMap(JAK.gel("m"));
+            map.addControl(new SMap.Control.Sync()); /* Aby mapa reagovala na změnu velikosti průhledu */
+            map.addDefaultLayer(SMap.DEF_TURIST).enable(); /* Turistický podklad */
             var mouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM); /* Ovládání myší */
-            m.addControl(mouse);
+            map.addControl(mouse);
 
             /* znackova vrstva pro ikonky bodu zajmu; poiToolTip - zapneme title jako nazev nad POI */
             var layer = new SMap.Layer.Marker(undefined, {
                 poiTooltip: true
             });
-            m.addLayer(layer).enable();
+            map.addLayer(layer).enable();
 
             vrstva = new SMap.Layer.Marker();     /* Vrstva se značkami */
-            m.addLayer(vrstva);                       /* Přidat ji do mapy */
+            map.addLayer(vrstva);                       /* Přidat ji do mapy */
             vrstva.enable();                         /* A povolit */
 
             /* dataProvider zastiti komunikaci se servery */
-            var dataProvider = m.createDefaultDataProvider();
-            dataProvider.setOwner(m);
+            var dataProvider = map.createDefaultDataProvider();
+            dataProvider.setOwner(map);
             dataProvider.addLayer(layer);
             dataProvider.setMapSet(SMap.MAPSET_BASE);
             dataProvider.enable();
@@ -216,8 +221,9 @@
 
             var userMarker = new SMap.Marker(userCoords, null, options);
             vrstva.addMarker(userMarker);
+            myLocation = userMarker;
 
-            m.setCenterZoom(userCoords, 14);  // Adjust zoom level as needed
+            map.setCenterZoom(userCoords, 16);  // Adjust zoom level as needed
         }
 
         // Prevent pull-to-refresh on mobile
@@ -235,6 +241,7 @@
 
     </script>
 
+    
 </head>
 <body id="advanced-markers" onload="onLoad();">
     <div id="m"></div>
